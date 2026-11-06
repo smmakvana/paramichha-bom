@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+        Paramichha BOM: the versions of the Paramichha libraries that are released and tested
+        together. Import it, then add the libraries without versions.
+
+        Deliberately NOT a child of paramichha-dev: importing a BOM also imports everything it
+        inherits, and the parent manages third-party versions (DataFaker, Jakarta Validation,
+        JUnit...) that must stay under the user's control (e.g. Spring Boot's). This pom manages
+        Paramichha artifacts only and carries just what Maven Central needs to publish it.
+    -->
+    <groupId>com.paramichha</groupId>
+    <artifactId>paramichha-bom</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>Paramichha BOM</name>
+    <description>Bill of materials: the Paramichha library versions that are released and tested together.</description>
+    <url>https://paramichha.com</url>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>smmakvana</id>
+            <name>Sanjay Makvana</name>
+            <email>sanjay@paramichha.com</email>
+            <url>https://paramichha.com</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/smmakvana/paramichha-bom.git</connection>
+        <developerConnection>scm:git:ssh://github.com/smmakvana/paramichha-bom.git</developerConnection>
+        <url>https://github.com/smmakvana/paramichha-bom</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Paramichha library versions. release-all.sh (paramichha-dev/scripts) sets these to the
+             versions it has just released, then releases this BOM last. -->
+        <paramichha-utils.version>0.1.0-SNAPSHOT</paramichha-utils.version>
+        <datafactory-catalog.version>0.2.0-SNAPSHOT</datafactory-catalog.version>
+        <datafactory.version>0.2.0-SNAPSHOT</datafactory.version>
+        <testkit.version>0.2.0-SNAPSHOT</testkit.version>
+
+        <!-- Publishing plugins (same versions as paramichha-dev) -->
+        <plugin.gpg.version>3.1.0</plugin.gpg.version>
+        <plugin.central.version>0.7.0</plugin.central.version>
+        <plugin.deploy.version>3.1.2</plugin.deploy.version>
+        <gpg.skip>true</gpg.skip>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.paramichha</groupId>
+                <artifactId>paramichha-utils</artifactId>
+                <version>${paramichha-utils.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.paramichha</groupId>
+                <artifactId>datafactory</artifactId>
+                <version>${datafactory.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.paramichha</groupId>
+                <artifactId>testkit</artifactId>
+                <version>${testkit.version}</version>
+            </dependency>
+            <!-- Test fixtures used to test DataFactory and TestKit themselves -->
+            <dependency>
+                <groupId>com.paramichha</groupId>
+                <artifactId>datafactory-catalog</artifactId>
+                <version>${datafactory-catalog.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>${plugin.gpg.version}</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${gpg.skip}</skip>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>${plugin.central.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>central</publishingServerId>
+                    <autoPublish>true</autoPublish>
+                    <waitUntil>published</waitUntil>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>${plugin.deploy.version}</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- mvn deploy -P release: signs and publishes to Maven Central -->
+        <profile>
+            <id>release</id>
+            <properties>
+                <gpg.skip>false</gpg.skip>
+            </properties>
+        </profile>
+    </profiles>
+</project>
